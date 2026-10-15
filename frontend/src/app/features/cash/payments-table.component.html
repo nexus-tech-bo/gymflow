@@ -1,0 +1,74 @@
+@if (!payments().length) {
+  <app-empty-state icon="wallet" title="Aún no hay pagos en esta caja." />
+} @else {
+  <div class="overflow-x-auto">
+    <table class="data-table">
+      <caption class="sr-only">
+        Pagos de la caja
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Hora</th>
+          <th scope="col">Socio</th>
+          <th scope="col" class="hidden sm:table-cell">Plan</th>
+          <th scope="col">Método</th>
+          <th scope="col" class="hidden md:table-cell">Referencia</th>
+          <th scope="col" class="hidden md:table-cell">Recibido por</th>
+          <th scope="col" class="text-right">Monto</th>
+          <th scope="col">Estado</th>
+          @if (canVoid()) {
+            <th scope="col"><span class="sr-only">Acciones</span></th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of payments(); track p.id) {
+          <tr>
+            <td class="tabular-nums">{{ p.paidAt | limaDateTime: 'time' }}</td>
+            <td>
+              <a
+                [routerLink]="['/socios', p.memberId]"
+                class="block max-w-[12rem] truncate font-bold text-gray-900 hover:text-primary-ink"
+                [title]="p.memberName"
+              >
+                {{ p.memberName }}
+              </a>
+            </td>
+            <td class="hidden sm:table-cell">{{ p.planName }}</td>
+            <td><app-status-chip [chip]="methodChip(p)" /></td>
+            <td class="hidden md:table-cell">{{ p.reference || '—' }}</td>
+            <td class="hidden md:table-cell">{{ p.receivedByName }}</td>
+            <td
+              class="text-right whitespace-nowrap tabular-nums"
+              [class]="p.voided ? 'text-gray-400 line-through' : 'font-semibold'"
+            >
+              {{ p.amount | money }}
+            </td>
+            <td>
+              @if (p.voided) {
+                <app-status-chip [chip]="voidedChip" [title]="p.voidReason" />
+                @if (p.voidReason) {
+                  <span class="sr-only">Motivo: {{ p.voidReason }}</span>
+                }
+              }
+            </td>
+            @if (canVoid()) {
+              <td class="text-right">
+                @if (!p.voided) {
+                  <button
+                    type="button"
+                    class="btn-icon hover:!text-red-600"
+                    [attr.aria-label]="'Anular pago de ' + p.memberName"
+                    (click)="voidPayment.emit(p)"
+                  >
+                    <app-ui-icon name="block" class="h-4 w-4" />
+                  </button>
+                }
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

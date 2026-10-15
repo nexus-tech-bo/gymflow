@@ -1,0 +1,77 @@
+<app-dialog-frame [title]="plan ? 'Editar plan' : 'Nuevo plan'">
+  <form
+    id="plan-form"
+    [formGroup]="form"
+    (ngSubmit)="save()"
+    class="grid gap-4 sm:grid-cols-2"
+    novalidate
+  >
+    <div class="sm:col-span-2">
+      <label class="field-label" for="name">Nombre *</label>
+      <input
+        id="name"
+        type="text"
+        class="field-input"
+        formControlName="name"
+        maxlength="60"
+        cdkFocusInitial
+      />
+      @if (err(form.controls.name); as message) {
+        <p id="name-error" class="field-error">{{ message }}</p>
+      }
+    </div>
+    <div>
+      <label class="field-label" for="durationDays">Duración en días *</label>
+      <input
+        id="durationDays"
+        type="number"
+        min="1"
+        max="730"
+        step="1"
+        class="field-input"
+        formControlName="durationDays"
+      />
+      @if (err(form.controls.durationDays); as message) {
+        <p id="durationDays-error" class="field-error">{{ message }}</p>
+      }
+    </div>
+    <div>
+      <label class="field-label" for="price">Precio *</label>
+      <div class="relative">
+        <span
+          class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-sm font-semibold text-gray-500"
+          >Bs</span
+        >
+        <input
+          id="price"
+          type="number"
+          min="0"
+          max="99999.99"
+          step="0.01"
+          class="field-input pl-10"
+          formControlName="price"
+        />
+      </div>
+      @if (err(form.controls.price); as message) {
+        <p id="price-error" class="field-error">{{ message }}</p>
+      }
+    </div>
+    @if (plan) {
+      <label
+        class="flex cursor-pointer items-center gap-2 text-sm font-semibold text-gray-600 sm:col-span-2"
+      >
+        <input type="checkbox" class="h-4 w-4 accent-primary" formControlName="active" />
+        Plan activo (disponible para vender)
+      </label>
+    }
+    @if (error()) {
+      <p class="form-error sm:col-span-2" role="alert">{{ error() }}</p>
+    }
+  </form>
+  <div dialogFooter class="contents">
+    <button type="button" class="btn btn-secondary" (click)="ref.close()">Cancelar</button>
+    <button type="submit" form="plan-form" class="btn btn-primary" [disabled]="saving()">
+      {{ saving() ? 'Guardando…' : 'Guardar plan' }}
+    </button>
+  </div>
+</app-dialog-frame>

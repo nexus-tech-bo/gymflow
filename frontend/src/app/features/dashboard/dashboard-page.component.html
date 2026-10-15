@@ -1,0 +1,106 @@
+<app-page-header [title]="greeting()" [subtitle]="subtitle()">
+  <button type="button" class="btn btn-secondary" (click)="newMember()">
+    <app-ui-icon name="plus" class="h-4 w-4" [strokeWidth]="2.4" /> Nuevo socio
+  </button>
+  <a routerLink="/check-in" class="btn btn-primary"
+    ><app-ui-icon name="scan" class="h-4 w-4" /> Registrar ingreso</a
+  >
+</app-page-header>
+
+@if (isLoading()) {
+  <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+    @for (i of [1, 2, 3, 4]; track i) {
+      <div class="skeleton h-24"></div>
+    }
+  </div>
+  <div class="space-y-2">
+    @for (i of [1, 2, 3, 4]; track i) {
+      <div class="skeleton h-14"></div>
+    }
+  </div>
+} @else if (errorMessage()) {
+  <app-empty-state icon="alert" [title]="errorMessage()">
+    <button type="button" class="btn btn-secondary btn-sm" (click)="reload()">Reintentar</button>
+  </app-empty-state>
+} @else if (summary(); as s) {
+  <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div class="stat-tile">
+      <p class="stat-label">Socios activos</p>
+      <p class="stat-value">{{ s.activeMembers }}</p>
+    </div>
+    <div class="stat-tile">
+      <p class="stat-label">Congelados</p>
+      <p class="stat-value">{{ s.frozenMembers }}</p>
+    </div>
+    <div class="stat-tile">
+      <p class="stat-label">Ingresos hoy</p>
+      <p class="stat-value">{{ s.checkInsToday }}</p>
+    </div>
+    <div class="stat-tile">
+      <p class="stat-label">Caja</p>
+      <div class="mt-2">
+        @if (cashFailed()) {
+          <p class="stat-value">—</p>
+          <a routerLink="/caja" class="mt-1 block text-sm font-bold text-primary-ink hover:underline"
+            >Ver caja</a
+          >
+        } @else if (!cashLoaded()) {
+          <div class="skeleton h-6 w-24"></div>
+        } @else if (cash(); as c) {
+          <app-status-chip [chip]="openChip" />
+          <p class="mt-1 text-sm font-semibold text-gray-700">
+            Abierta desde {{ c.session.openedAt | limaDateTime: 'time' }}
+          </p>
+        } @else {
+          <app-status-chip [chip]="closedChip" />
+          <a routerLink="/caja" class="mt-1 block text-sm font-bold text-primary-ink hover:underline"
+            >Abrir caja</a
+          >
+        }
+      </div>
+    </div>
+  </div>
+
+  <section class="glass-panel rounded-3xl p-4" aria-labelledby="expiring-title">
+    <h2 id="expiring-title" class="mb-3 px-2 pt-2 text-lg font-extrabold text-gray-900">
+      Vencen pronto
+    </h2>
+    @if (!expiring().length) {
+      <app-empty-state icon="check" title="Nadie vence en los próximos días." />
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="data-table">
+          <caption class="sr-only">
+            Membresías que vencen pronto
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Socio</th>
+              <th scope="col" class="hidden sm:table-cell">Plan</th>
+              <th scope="col">Vence</th>
+              <th scope="col" class="text-right">Días</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of expiring(); track e.memberId) {
+              <tr>
+                <td>
+                  <a
+                    [routerLink]="['/socios', e.memberId]"
+                    class="block max-w-[14rem] truncate font-bold text-gray-900 hover:text-primary-ink"
+                    [title]="e.memberName"
+                  >
+                    {{ e.memberName }}
+                  </a>
+                </td>
+                <td class="hidden sm:table-cell">{{ e.planName }}</td>
+                <td class="tabular-nums">{{ e.endDate | localDate }}</td>
+                <td class="text-right"><app-status-chip [chip]="daysChip(e.daysLeft)" /></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+}

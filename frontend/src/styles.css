@@ -1,0 +1,193 @@
+/* GymFlow — glass-ui design system (Tailwind v4). */
+@import 'tailwindcss';
+@import '@angular/cdk/overlay-prebuilt.css';
+
+@theme {
+  --color-primary: #f5b700;
+  /* primary yellow fails AA as text on white (1.8:1); ink is ~5.5:1. Fills carry dark text. */
+  --color-primary-ink: #8a6100;
+  --color-secondary: #00a3a3;
+  /* secondary used as text: #00a3a3 on white fails AA (3.1:1), ink is ~5:1. */
+  --color-secondary-ink: #007a7a;
+  --color-tertiary: #973c00;
+  --color-neutral: #f8f9fa;
+  --font-sans: 'Inter', sans-serif;
+}
+
+/* Glassmorphism-lite: translucent panels, soft blur, subtle relief. Keep it restrained. */
+.glass-panel {
+  background: rgb(255 255 255 / 46%);
+  backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgb(255 255 255 / 70%);
+  box-shadow:
+    0 12px 32px -10px rgb(15 23 42 / 10%),
+    inset 0 1px 0 rgb(255 255 255 / 60%);
+}
+
+.glass-card,
+.stat-tile {
+  background: rgb(255 255 255 / 68%);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgb(255 255 255 / 90%);
+  box-shadow:
+    0 6px 16px -8px rgb(15 23 42 / 12%),
+    inset 0 1px 0 rgb(255 255 255 / 70%);
+  transform: rotate(var(--tilt, 0deg));
+  transition:
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.25s ease;
+}
+
+.glass-card:hover {
+  position: relative;
+  z-index: 5;
+  transform: translateY(-6px) scale(1.02) rotate(0deg);
+  box-shadow:
+    0 20px 36px -10px rgb(15 23 42 / 18%),
+    inset 0 1px 0 rgb(255 255 255 / 70%);
+}
+
+.glass-card.cdk-drag-preview {
+  transform: rotate(-3deg) scale(1.05) !important;
+  box-shadow: 0 24px 44px -10px rgb(15 23 42 / 26%) !important;
+}
+
+/* Optional playful resting tilt, straightened on hover: `style="--tilt: -1.4deg"` or nth-of-type rules. */
+
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+}
+
+/* Modal surface: same glass language as glass-card, tuned for a form (needs a bit more legibility than a board card). */
+.glass-modal {
+  background: rgb(255 255 255 / 92%);
+  backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgb(255 255 255 / 85%);
+  box-shadow:
+    0 24px 60px -12px rgb(15 23 42 / 35%),
+    inset 0 1px 0 rgb(255 255 255 / 75%);
+}
+
+.glass-backdrop {
+  background: rgb(15 23 42 / 35%);
+  backdrop-filter: blur(4px);
+}
+
+/* ── Design system primitives ────────────────────────────────────────────────
+   Reusable classes for the glass UI. Prefer these over repeating long utility strings
+   in templates; add new variants here instead of one-off styles in components. */
+
+@layer components {
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-bold whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-gray-900 shadow-lg shadow-primary/30 hover:bg-primary/90;
+  }
+
+  .btn-secondary {
+    @apply border border-white/70 bg-white/50 text-gray-700 shadow-sm backdrop-blur-xl hover:bg-white/75;
+  }
+
+  .btn-danger {
+    @apply bg-red-50 text-red-600 hover:bg-red-100;
+  }
+
+  .btn-ghost {
+    @apply text-gray-500 hover:bg-white/60 hover:text-gray-800;
+  }
+
+  .btn-sm {
+    @apply rounded-xl px-3 py-1.5 text-xs;
+  }
+
+  .btn-icon {
+    @apply inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl text-gray-500 transition-colors hover:bg-white/70 hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-xs font-bold tracking-wide text-gray-500;
+  }
+
+  .field-input {
+    @apply w-full rounded-2xl border border-gray-900/10 bg-gray-900/[0.04] px-4 py-2.5 text-sm text-gray-700 shadow-[inset_0_1px_3px_rgba(0,0,0,0.08)] transition-colors placeholder:text-gray-400 focus:border-primary/40 focus:bg-white focus:shadow-none focus:ring-2 focus:ring-primary/30 focus:outline-none disabled:opacity-60;
+  }
+
+  .field-input.ng-invalid.ng-touched,
+  app-date-picker.ng-invalid.ng-touched .field-input {
+    @apply border-red-300 focus:ring-red-200;
+  }
+
+  .field-error {
+    @apply mt-1.5 text-xs font-medium text-red-500;
+  }
+
+  .data-table {
+    @apply w-full border-separate border-spacing-0 text-left text-sm;
+  }
+
+  .data-table th {
+    @apply sticky top-0 z-[1] bg-white/60 px-4 py-3 text-xs font-bold tracking-wide text-gray-500 uppercase backdrop-blur-md first:rounded-l-2xl last:rounded-r-2xl;
+  }
+
+  .data-table td {
+    @apply border-b border-gray-900/[0.05] px-4 py-3.5 font-medium text-gray-700;
+  }
+
+  .data-table tbody tr {
+    @apply transition-colors hover:bg-white/50;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold whitespace-nowrap;
+  }
+
+  .btn,
+  .btn-icon {
+    @apply focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 focus-visible:outline-none;
+  }
+
+  .stat-tile {
+    @apply rounded-2xl p-4;
+  }
+
+  .stat-label {
+    @apply text-xs font-bold tracking-wide text-gray-500;
+  }
+
+  .stat-value {
+    @apply mt-1 text-2xl font-extrabold text-gray-900 tabular-nums;
+  }
+
+  .skeleton {
+    @apply animate-pulse rounded-2xl bg-white/50;
+  }
+
+  .form-error {
+    @apply rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700;
+  }
+
+  .avatar {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-xs font-bold text-primary-ink;
+  }
+
+  .back-link {
+    @apply mb-3 inline-flex items-center gap-1 text-sm font-bold text-gray-500 hover:text-primary-ink;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-card,
+  .glass-card:hover {
+    transform: none;
+    transition: none;
+  }
+
+  .animate-pulse {
+    animation: none;
+  }
+}

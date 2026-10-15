@@ -1,0 +1,13 @@
+package com.example.gymflow.dto.payment;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+/**
+ * Reason for voiding a payment.
+ */
+public record PaymentVoidRequest(
+        @NotBlank
+        @Size(max = 200)
+        String reason
+) {}

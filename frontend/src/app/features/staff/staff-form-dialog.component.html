@@ -1,0 +1,98 @@
+<app-dialog-frame [title]="staff ? 'Editar usuario' : 'Nuevo usuario'" [subtitle]="staff?.email">
+  <form id="staff-form" [formGroup]="form" (ngSubmit)="save()" class="space-y-4" novalidate>
+    <div>
+      <label class="field-label" for="fullName">Nombre completo *</label>
+      <input
+        id="fullName"
+        type="text"
+        autocomplete="off"
+        class="field-input"
+        formControlName="fullName"
+        maxlength="120"
+        cdkFocusInitial
+      />
+      @if (err(form.controls.fullName); as message) {
+        <p id="fullName-error" class="field-error">{{ message }}</p>
+      }
+    </div>
+    @if (!staff) {
+      <div>
+        <label class="field-label" for="email">Correo *</label>
+        <input
+          id="email"
+          type="email"
+          autocomplete="off"
+          class="field-input"
+          formControlName="email"
+        />
+        @if (err(form.controls.email); as message) {
+          <p id="email-error" class="field-error">{{ message }}</p>
+        }
+      </div>
+      <div>
+        <label class="field-label" for="password">Contraseña temporal *</label>
+        <div class="relative">
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            autocomplete="new-password"
+            class="field-input pr-12"
+            formControlName="password"
+          />
+          <button
+            type="button"
+            class="btn-icon absolute top-1/2 right-1.5 -translate-y-1/2"
+            [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            [attr.aria-pressed]="showPassword()"
+            (click)="showPassword.set(!showPassword())"
+          >
+            <app-ui-icon [name]="showPassword() ? 'eyeOff' : 'eye'" class="h-4 w-4" />
+          </button>
+        </div>
+        @if (err(form.controls.password); as message) {
+          <p id="password-error" class="field-error">{{ message }}</p>
+        } @else {
+          <p class="mt-1.5 text-xs text-gray-500">
+            Mínimo 8 caracteres. Compártela con la persona.
+          </p>
+        }
+      </div>
+    }
+
+    @if (roles.length > 1) {
+      <fieldset>
+        <legend class="field-label">Rol *</legend>
+        <div class="grid grid-cols-2 gap-2">
+          @for (r of roles; track r) {
+            <label
+              class="flex cursor-pointer items-center justify-center rounded-2xl border-2 py-2.5 text-sm font-bold transition-colors focus-within:ring-2 focus-within:ring-primary-ink"
+              [class]="
+                role() === r
+                  ? 'border-primary-ink bg-white text-primary-ink'
+                  : 'border-transparent bg-white/50 text-gray-600'
+              "
+            >
+              <input type="radio" class="sr-only" formControlName="role" [value]="r" />
+              {{ roleLabel[r].label }}
+            </label>
+          }
+        </div>
+      </fieldset>
+    } @else {
+      <div>
+        <p class="field-label">Rol</p>
+        <p class="font-bold text-gray-900">{{ roleLabel[roles[0]].label }}</p>
+      </div>
+    }
+
+    @if (error()) {
+      <p class="form-error" role="alert">{{ error() }}</p>
+    }
+  </form>
+  <div dialogFooter class="contents">
+    <button type="button" class="btn btn-secondary" (click)="ref.close()">Cancelar</button>
+    <button type="submit" form="staff-form" class="btn btn-primary" [disabled]="saving()">
+      {{ saving() ? 'Guardando…' : staff ? 'Guardar cambios' : 'Crear usuario' }}
+    </button>
+  </div>
+</app-dialog-frame>

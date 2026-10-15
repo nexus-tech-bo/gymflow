@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: gymflow-backend
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    envVars:
+      # PORT lo inyecta Render (10000); Spring lo lee vía server.port
+      - key: DB_URL          # jdbc:postgresql://host:5432/db
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SECRET      # Render genera un valor aleatorio de 256 bits
+        generateValue: true
+      - key: JWT_EXPIRATION_MS
+        value: "28800000"
+      - key: APP_TIMEZONE
+        value: America/Lima
+      - key: CORS_ALLOWED_ORIGINS  # el front usa proxy (mismo origen); pon aquí la URL del front si llamas al back directo
+        value: "*"
+
+  - type: web
+    name: gymflow-frontend
+    runtime: docker
+    plan: free
+    rootDir: frontend
+    dockerfilePath: ./Dockerfile
+    envVars:
+      # Plan free no recibe tráfico por red privada: el proxy va a la URL pública.
+      # Si Render le asigna otro nombre al backend, actualízala aquí.
+      - key: BACKEND_URL
+        value: https://gymflow-backend.onrender.com
