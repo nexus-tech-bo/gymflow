@@ -1,0 +1,98 @@
+<app-page-header title="Planes" subtitle="Lo que vendes en recepción">
+  @if (canEdit()) {
+    <button type="button" class="btn btn-primary" (click)="open()">
+      <app-ui-icon name="plus" class="h-4 w-4" [strokeWidth]="2.4" /> Nuevo plan
+    </button>
+  }
+</app-page-header>
+
+<section class="glass-panel rounded-3xl p-4">
+  @if (canEdit()) {
+    <label
+      class="mb-3 flex w-fit cursor-pointer items-center gap-2 px-2 text-sm font-semibold text-gray-600"
+    >
+      <input
+        type="checkbox"
+        class="h-4 w-4 accent-primary"
+        [checked]="includeInactive()"
+        (change)="includeInactive.set($any($event.target).checked)"
+      />
+      Mostrar inactivos
+    </label>
+  }
+
+  <div class="overflow-x-auto">
+    @if (isLoading() && !rows().length) {
+      <div class="space-y-2 p-2">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="skeleton h-14"></div>
+        }
+      </div>
+    } @else if (errorMessage()) {
+      <app-empty-state icon="alert" [title]="errorMessage()">
+        <button type="button" class="btn btn-secondary btn-sm" (click)="reload()">
+          Reintentar
+        </button>
+      </app-empty-state>
+    } @else if (!rows().length) {
+      @if (canEdit()) {
+        <app-empty-state
+          icon="tag"
+          title="Aún no hay planes"
+          message="Crea el primero para empezar a vender."
+        >
+          <button type="button" class="btn btn-primary" (click)="open()">Nuevo plan</button>
+        </app-empty-state>
+      } @else {
+        <app-empty-state
+          icon="tag"
+          title="Aún no hay planes"
+          message="Pide a un administrador que cree los planes."
+        />
+      }
+    } @else {
+      <table class="data-table">
+        <caption class="sr-only">
+          Planes
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Nombre</th>
+            <th scope="col" class="hidden text-right sm:table-cell">Duración</th>
+            <th scope="col" class="text-right">Precio</th>
+            <th scope="col">Estado</th>
+            @if (canEdit()) {
+              <th scope="col" class="text-right"><span class="sr-only">Acciones</span></th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (plan of rows(); track plan.id) {
+            <tr>
+              <td class="max-w-[16rem] truncate font-bold text-gray-900" [title]="plan.name">
+                {{ plan.name }}
+              </td>
+              <td class="hidden text-right tabular-nums sm:table-cell">
+                {{ plan.durationDays }} días
+              </td>
+              <td class="text-right tabular-nums">{{ plan.price | money }}</td>
+              <td><app-status-chip [chip]="activeChip(plan.active)" /></td>
+              @if (canEdit()) {
+                <td class="text-right">
+                  <button
+                    type="button"
+                    class="btn-icon"
+                    [attr.aria-label]="'Editar ' + plan.name"
+                    (click)="open(plan)"
+                  >
+                    <app-ui-icon name="edit" class="h-4 w-4" />
+                  </button>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</section>

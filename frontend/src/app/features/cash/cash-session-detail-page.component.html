@@ -1,0 +1,98 @@
+<a routerLink="/cajas" class="back-link"
+  ><app-ui-icon name="chevronLeft" class="h-4 w-4" /> Historial de cajas</a
+>
+
+@if (data(); as d) {
+  <app-page-header [title]="'Caja del ' + (d.session.openedAt | limaDateTime: 'date')">
+    <app-status-chip headerChips [chip]="statusChip[d.session.status]" />
+  </app-page-header>
+
+  @if (d.session.status === 'OPEN') {
+    <p
+      class="mb-6 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-secondary/10 px-4 py-3 text-sm font-semibold text-secondary-ink"
+    >
+      Esta caja sigue abierta
+      <a routerLink="/caja" class="font-bold underline">Ir a Caja</a>
+    </p>
+  }
+
+  <div class="mb-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+    <div class="stat-tile">
+      <p class="stat-label">Monto inicial</p>
+      <p class="stat-value">{{ d.session.openingAmount | money }}</p>
+    </div>
+    <div class="stat-tile">
+      <p class="stat-label">Esperado</p>
+      <p class="stat-value">{{ d.session.expectedCash | money }}</p>
+    </div>
+    <div class="stat-tile">
+      <p class="stat-label">Contado</p>
+      <p class="stat-value">{{ d.session.countedCash | money }}</p>
+    </div>
+    <div class="stat-tile">
+      <p class="stat-label">Diferencia</p>
+      <div class="mt-2">
+        @if (differenceChip(d.session.difference); as chip) {
+          <app-status-chip [chip]="chip" />
+        } @else {
+          <p class="stat-value">—</p>
+        }
+      </div>
+    </div>
+    @if (d.session.totals; as t) {
+      <div class="stat-tile">
+        <p class="stat-label">Total</p>
+        <p class="stat-value">{{ t.total | money }}</p>
+      </div>
+      <div class="stat-tile">
+        <p class="stat-label">Efectivo</p>
+        <p class="stat-value">{{ t.cash | money }}</p>
+      </div>
+      <div class="stat-tile">
+        <p class="stat-label">QR</p>
+        <p class="stat-value">{{ t.qr | money }}</p>
+      </div>
+      <div class="stat-tile">
+        <p class="stat-label">N° pagos</p>
+        <p class="stat-value">{{ t.count }}</p>
+      </div>
+    }
+  </div>
+
+  <p class="mb-6 text-sm text-gray-500">
+    Abierta por <strong class="text-gray-700">{{ d.session.openedByName }}</strong> el
+    {{ d.session.openedAt | limaDateTime }}
+    @if (d.session.closedAt) {
+      · Cerrada por <strong class="text-gray-700">{{ d.session.closedByName }}</strong> el
+      {{ d.session.closedAt | limaDateTime }}
+    }
+  </p>
+
+  @if (d.session.notes) {
+    <section class="glass-panel mb-6 rounded-3xl p-5">
+      <h2 class="stat-label mb-1">NOTAS</h2>
+      <p class="text-sm whitespace-pre-line text-gray-700">{{ d.session.notes }}</p>
+    </section>
+  }
+
+  <section class="glass-panel rounded-3xl p-4" aria-labelledby="payments-title">
+    <h2 id="payments-title" class="stat-label mb-3 px-2 pt-2">PAGOS</h2>
+    <app-payments-table [payments]="d.payments" />
+  </section>
+} @else if (notFound()) {
+  <app-empty-state icon="history" title="Caja no encontrada">
+    <a routerLink="/cajas" class="btn btn-secondary btn-sm">Volver al historial</a>
+  </app-empty-state>
+} @else if (errorMessage()) {
+  <app-empty-state icon="alert" [title]="errorMessage()">
+    <button type="button" class="btn btn-secondary btn-sm" (click)="reload()">Reintentar</button>
+  </app-empty-state>
+} @else {
+  <div class="skeleton mb-6 h-12 w-64"></div>
+  <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
+    @for (i of [1, 2, 3, 4, 5]; track i) {
+      <div class="skeleton h-24"></div>
+    }
+  </div>
+  <div class="skeleton h-64"></div>
+}

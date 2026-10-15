@@ -1,0 +1,131 @@
+<app-dialog-frame title="Vender membresía" [subtitle]="data.memberName">
+  @if (isLoading()) {
+    <div class="space-y-3">
+      <div class="skeleton h-11"></div>
+      <div class="skeleton h-11"></div>
+      <div class="skeleton h-20"></div>
+    </div>
+  } @else if (loadError()) {
+    <app-empty-state icon="alert" [title]="loadError()">
+      <button type="button" class="btn btn-secondary btn-sm" (click)="reloadAll()">
+        Reintentar
+      </button>
+    </app-empty-state>
+  } @else if (!cashOpen()) {
+    <div class="rounded-2xl bg-tertiary/10 p-4 text-tertiary">
+      <p class="text-sm font-semibold">La caja está cerrada. Abre la caja para registrar ventas.</p>
+      <button type="button" class="btn btn-primary mt-3" (click)="goToCash()">Ir a Caja</button>
+    </div>
+  } @else if (!planList().length) {
+    <app-empty-state
+      icon="tag"
+      title="No hay planes activos"
+      message="Crea o activa un plan en Planes para poder vender."
+    />
+  } @else {
+    <form id="sell-form" [formGroup]="form" (ngSubmit)="save()" class="space-y-4" novalidate>
+      <div>
+        <label class="field-label" for="planId">Plan *</label>
+        <select
+          id="planId"
+          class="field-input"
+          formControlName="planId"
+          #planSelect
+          (change)="onPlanChange()"
+        >
+          <option [ngValue]="null" disabled>Selecciona un plan</option>
+          @for (plan of planList(); track plan.id) {
+            <option [ngValue]="plan.id">{{ planLabel(plan) }}</option>
+          }
+        </select>
+        @if (err(form.controls.planId); as message) {
+          <p id="planId-error" class="field-error">{{ message }}</p>
+        }
+      </div>
+
+      @if (canOverridePrice()) {
+        <div>
+          <label class="field-label" for="price">Precio</label>
+          <div class="relative">
+            <span
+              class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-sm font-semibold text-gray-500"
+              >Bs</span
+            >
+            <input
+              id="price"
+              type="number"
+              step="0.01"
+              min="0"
+              class="field-input pl-10"
+              formControlName="price"
+            />
+          </div>
+          @if (err(form.controls.price); as message) {
+            <p id="price-error" class="field-error">{{ message }}</p>
+          }
+        </div>
+      } @else if (selectedPlan(); as plan) {
+        <div>
+          <p class="field-label">Precio</p>
+          <p class="font-bold text-gray-900 tabular-nums">{{ plan.price | money }}</p>
+        </div>
+      }
+
+      <fieldset>
+        <legend class="field-label">Método de pago *</legend>
+        <div class="grid grid-cols-2 gap-2">
+          @for (m of methods; track m) {
+            <label
+              class="flex cursor-pointer items-center justify-center rounded-2xl border-2 py-2.5 text-sm font-bold transition-colors focus-within:ring-2 focus-within:ring-primary-ink"
+              [class]="
+                method() === m
+                  ? 'border-primary-ink bg-white text-primary-ink'
+                  : 'border-transparent bg-white/50 text-gray-600'
+              "
+            >
+              <input type="radio" class="sr-only" formControlName="paymentMethod" [value]="m" />
+              {{ methodLabel[m] }}
+            </label>
+          }
+        </div>
+      </fieldset>
+
+      @if (method() !== 'CASH') {
+        <div>
+          <label class="field-label" for="paymentReference">N° de operación</label>
+          <input
+            id="paymentReference"
+            type="text"
+            autocomplete="off"
+            class="field-input"
+            formControlName="paymentReference"
+            maxlength="40"
+          />
+          @if (err(form.controls.paymentReference); as message) {
+            <p id="paymentReference-error" class="field-error">{{ message }}</p>
+          }
+        </div>
+      }
+
+      @if (total() !== null) {
+        <p class="rounded-2xl bg-white/60 px-4 py-3 text-sm text-gray-700">
+          Total a cobrar:
+          <strong class="text-gray-900 tabular-nums">{{ total() | money }}</strong> en
+          {{ methodLabel[method()] }}
+        </p>
+      }
+
+      @if (error()) {
+        <p class="form-error" role="alert">{{ error() }}</p>
+      }
+    </form>
+  }
+  <div dialogFooter class="contents">
+    <button type="button" class="btn btn-secondary" (click)="ref.close()">Cancelar</button>
+    @if (cashOpen() && planList().length) {
+      <button type="submit" form="sell-form" class="btn btn-primary" [disabled]="saving()">
+        {{ saving() ? 'Registrando…' : 'Cobrar y vender' }}
+      </button>
+    }
+  </div>
+</app-dialog-frame>

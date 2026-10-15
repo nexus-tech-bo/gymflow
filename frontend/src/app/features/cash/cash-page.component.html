@@ -1,0 +1,112 @@
+@if (isLoading() && !loaded()) {
+  <div class="skeleton mb-6 h-12 w-56"></div>
+  <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+    @for (i of [1, 2, 3, 4]; track i) {
+      <div class="skeleton h-24"></div>
+    }
+  </div>
+  <div class="skeleton h-64"></div>
+} @else if (errorMessage()) {
+  <app-page-header title="Caja" />
+  <app-empty-state icon="alert" [title]="errorMessage()">
+    <button type="button" class="btn btn-secondary btn-sm" (click)="reload()">Reintentar</button>
+  </app-empty-state>
+} @else if (current(); as c) {
+  <app-page-header
+    title="Caja"
+    [subtitle]="
+      'Abierta por ' + c.session.openedByName + ' · ' + (c.session.openedAt | limaDateTime: 'time')
+    "
+  >
+    <app-status-chip headerChips [chip]="openChip" />
+    <button type="button" class="btn btn-primary" [disabled]="preparingClose()" (click)="close()">
+      Cerrar caja
+    </button>
+  </app-page-header>
+
+  <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
+    <div class="stat-tile">
+      <p class="stat-label">Monto inicial</p>
+      <p class="stat-value">{{ c.session.openingAmount | money }}</p>
+    </div>
+    @if (c.session.totals; as t) {
+      <div class="stat-tile">
+        <p class="stat-label">Total vendido</p>
+        <p class="stat-value">{{ t.total | money }}</p>
+      </div>
+      <div class="stat-tile">
+        <p class="stat-label">Efectivo esperado</p>
+        <p class="stat-value">{{ c.session.expectedCash | money }}</p>
+      </div>
+      <div class="stat-tile">
+        <p class="stat-label">Efectivo</p>
+        <p class="stat-value">{{ t.cash | money }}</p>
+      </div>
+      <div class="stat-tile">
+        <p class="stat-label">QR</p>
+        <p class="stat-value">{{ t.qr | money }}</p>
+      </div>
+    } @else {
+      <div class="stat-tile">
+        <p class="stat-label">Pagos</p>
+        <p class="stat-value">{{ c.payments.length }}</p>
+      </div>
+    }
+  </div>
+
+  <section class="glass-panel rounded-3xl p-4" aria-labelledby="payments-title">
+    <h2 id="payments-title" class="stat-label mb-3 px-2 pt-2">PAGOS DE ESTA CAJA</h2>
+    <app-payments-table
+      [payments]="c.payments"
+      [canVoid]="isManager()"
+      (voidPayment)="voidPayment($event)"
+    />
+  </section>
+} @else {
+  <app-page-header title="Caja" />
+  <section class="glass-panel mx-auto max-w-md rounded-3xl p-6 text-center">
+    <span
+      class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/60 text-gray-500"
+    >
+      <app-ui-icon name="wallet" class="h-6 w-6" />
+    </span>
+    <h2 class="text-xl font-extrabold text-gray-900">La caja está cerrada</h2>
+    <p class="mt-1 text-sm text-gray-500">Ábrela para empezar a registrar ventas del día.</p>
+
+    <form [formGroup]="openForm" (ngSubmit)="open()" class="mt-6 space-y-4 text-left" novalidate>
+      <div>
+        <label class="field-label" for="openingAmount">Monto inicial en efectivo *</label>
+        <div class="relative">
+          <span
+            class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-sm font-semibold text-gray-500"
+            >Bs</span
+          >
+          <input
+            id="openingAmount"
+            type="number"
+            step="0.01"
+            min="0"
+            class="field-input pl-10"
+            formControlName="openingAmount"
+          />
+        </div>
+        @if (err(openForm.controls.openingAmount); as message) {
+          <p id="openingAmount-error" class="field-error">{{ message }}</p>
+        }
+      </div>
+      @if (openError()) {
+        <p class="form-error" role="alert">{{ openError() }}</p>
+      }
+      <button type="submit" class="btn btn-primary w-full" [disabled]="opening()">
+        {{ opening() ? 'Abriendo…' : 'Abrir caja' }}
+      </button>
+    </form>
+    @if (isManager()) {
+      <a
+        routerLink="/cajas"
+        class="mt-4 inline-block text-sm font-bold text-primary-ink hover:underline"
+        >Ver historial de cajas</a
+      >
+    }
+  </section>
+}

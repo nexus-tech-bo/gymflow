@@ -1,0 +1,98 @@
+<app-page-header title="Staff" subtitle="Personas con acceso al sistema">
+  <button type="button" class="btn btn-primary" (click)="open()">
+    <app-ui-icon name="plus" class="h-4 w-4" [strokeWidth]="2.4" /> Nuevo usuario
+  </button>
+</app-page-header>
+
+<section class="glass-panel rounded-3xl p-4">
+  <div class="overflow-x-auto">
+    @if (isLoading() && !rows().length) {
+      <div class="space-y-2 p-2">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="skeleton h-14"></div>
+        }
+      </div>
+    } @else if (errorMessage()) {
+      <app-empty-state icon="alert" [title]="errorMessage()">
+        <button type="button" class="btn btn-secondary btn-sm" (click)="reload()">
+          Reintentar
+        </button>
+      </app-empty-state>
+    } @else if (!rows().length) {
+      <app-empty-state
+        icon="staff"
+        title="Aún no hay usuarios"
+        message="Crea el primero para darle acceso."
+      />
+    } @else {
+      <table class="data-table">
+        <caption class="sr-only">
+          Usuarios del sistema
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Nombre</th>
+            <th scope="col">Rol</th>
+            <th scope="col" class="hidden sm:table-cell">Estado</th>
+            <th scope="col" class="hidden md:table-cell">Creado</th>
+            <th scope="col" class="text-right"><span class="sr-only">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.id) {
+            <tr>
+              <td>
+                <div class="flex items-center gap-3">
+                  <span class="avatar" aria-hidden="true">{{ initials(row.fullName) }}</span>
+                  <div class="min-w-0">
+                    <p class="flex items-center gap-2 font-bold text-gray-900">
+                      <span class="max-w-[12rem] truncate" [title]="row.fullName">{{
+                        row.fullName
+                      }}</span>
+                      @if (row.id === me()?.id) {
+                        <app-status-chip [chip]="youChip" />
+                      }
+                    </p>
+                    <p class="max-w-[14rem] truncate text-xs text-gray-500" [title]="row.email">
+                      {{ row.email }}
+                    </p>
+                  </div>
+                </div>
+              </td>
+              <td><app-status-chip [chip]="roleChip[row.role]" /></td>
+              <td class="hidden sm:table-cell">
+                <app-status-chip [chip]="activeChip(row.active)" />
+              </td>
+              <td class="hidden tabular-nums md:table-cell">
+                {{ row.createdAt | limaDateTime: 'date' }}
+              </td>
+              <td>
+                @if (canManage(row)) {
+                  <div class="flex justify-end gap-1">
+                    <button
+                      type="button"
+                      class="btn-icon"
+                      [attr.aria-label]="'Editar ' + row.fullName"
+                      (click)="open(row)"
+                    >
+                      <app-ui-icon name="edit" class="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-icon"
+                      [class]="row.active ? 'hover:!text-red-600' : ''"
+                      [attr.aria-label]="(row.active ? 'Desactivar ' : 'Activar ') + row.fullName"
+                      (click)="toggleActive(row)"
+                    >
+                      <app-ui-icon [name]="row.active ? 'block' : 'check'" class="h-4 w-4" />
+                    </button>
+                  </div>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</section>

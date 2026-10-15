@@ -1,0 +1,109 @@
+@if (result(); as r) {
+  <app-dialog-frame title="Caja cerrada">
+    <dl class="grid grid-cols-2 gap-3">
+      <div class="rounded-2xl bg-white/60 p-3">
+        <dt class="stat-label">Esperado</dt>
+        <dd class="text-lg font-extrabold text-gray-900 tabular-nums">
+          {{ r.session.expectedCash | money }}
+        </dd>
+      </div>
+      <div class="rounded-2xl bg-white/60 p-3">
+        <dt class="stat-label">Contado</dt>
+        <dd class="text-lg font-extrabold text-gray-900 tabular-nums">
+          {{ r.session.countedCash | money }}
+        </dd>
+      </div>
+      <div class="col-span-2 rounded-2xl bg-white/60 p-3">
+        <dt class="stat-label">Diferencia</dt>
+        <dd class="mt-1">
+          @if (resultDifference(); as chip) {
+            <app-status-chip [chip]="chip" />
+          }
+        </dd>
+      </div>
+      @if (r.session.totals; as t) {
+        <div class="rounded-2xl bg-white/60 p-3">
+          <dt class="stat-label">Efectivo</dt>
+          <dd class="font-bold tabular-nums">{{ t.cash | money }}</dd>
+        </div>
+        <div class="rounded-2xl bg-white/60 p-3">
+          <dt class="stat-label">QR</dt>
+          <dd class="font-bold tabular-nums">{{ t.qr | money }}</dd>
+        </div>
+        <div class="col-span-2 rounded-2xl bg-white/60 p-3">
+          <dt class="stat-label">Total vendido · {{ t.count }} pagos</dt>
+          <dd class="text-lg font-extrabold text-gray-900 tabular-nums">{{ t.total | money }}</dd>
+        </div>
+      }
+    </dl>
+    <div dialogFooter class="contents">
+      <button type="button" class="btn btn-secondary" (click)="ref.close(r)">Cerrar</button>
+      <button type="button" class="btn btn-primary" (click)="viewDetail(r.session.id)">
+        Ver detalle
+      </button>
+    </div>
+  </app-dialog-frame>
+} @else {
+  <app-dialog-frame title="Cerrar caja">
+    <form id="close-cash-form" [formGroup]="form" (ngSubmit)="save()" class="space-y-4" novalidate>
+      @if (blind) {
+        <p class="rounded-2xl bg-white/60 px-4 py-3 text-sm text-gray-700">
+          Cuenta el efectivo físico de la caja e ingresa el total. El sistema hará la comparación.
+        </p>
+      } @else {
+        <p
+          class="flex items-center justify-between rounded-2xl bg-white/60 px-4 py-3 text-sm text-gray-700"
+        >
+          Efectivo esperado
+          <strong class="text-gray-900 tabular-nums">{{ session.expectedCash | money }}</strong>
+        </p>
+      }
+      <div>
+        <label class="field-label" for="countedCash">Efectivo contado *</label>
+        <div class="relative">
+          <span
+            class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-sm font-semibold text-gray-500"
+            >Bs</span
+          >
+          <input
+            id="countedCash"
+            type="number"
+            step="0.01"
+            min="0"
+            class="field-input pl-10"
+            formControlName="countedCash"
+            cdkFocusInitial
+          />
+        </div>
+        @if (err(form.controls.countedCash); as message) {
+          <p id="countedCash-error" class="field-error">{{ message }}</p>
+        }
+        @if (liveDifference(); as chip) {
+          <p class="mt-2" aria-live="polite"><app-status-chip [chip]="chip" /></p>
+        }
+      </div>
+      <div>
+        <label class="field-label" for="notes">Notas</label>
+        <textarea
+          id="notes"
+          rows="3"
+          class="field-input resize-none"
+          formControlName="notes"
+          maxlength="500"
+        ></textarea>
+        @if (err(form.controls.notes); as message) {
+          <p id="notes-error" class="field-error">{{ message }}</p>
+        }
+      </div>
+      @if (error()) {
+        <p class="form-error" role="alert">{{ error() }}</p>
+      }
+    </form>
+    <div dialogFooter class="contents">
+      <button type="button" class="btn btn-secondary" (click)="ref.close()">Cancelar</button>
+      <button type="submit" form="close-cash-form" class="btn btn-primary" [disabled]="saving()">
+        {{ saving() ? 'Cerrando…' : 'Cerrar caja' }}
+      </button>
+    </div>
+  </app-dialog-frame>
+}

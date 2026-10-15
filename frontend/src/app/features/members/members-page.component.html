@@ -1,0 +1,130 @@
+<app-page-header title="Socios" [subtitle]="result() ? result()!.totalItems + ' socios' : null">
+  <button type="button" class="btn btn-primary" (click)="openCreate()">
+    <app-ui-icon name="plus" class="h-4 w-4" [strokeWidth]="2.4" /> Nuevo socio
+  </button>
+</app-page-header>
+
+<section class="glass-panel rounded-3xl p-4">
+  <div class="relative mb-4 max-w-md">
+    <label for="member-search" class="sr-only">Buscar socio</label>
+    <app-ui-icon
+      name="search"
+      class="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-gray-400"
+    />
+    <input
+      id="member-search"
+      type="search"
+      class="field-input pl-11"
+      placeholder="Buscar por nombre o DNI"
+      autocomplete="off"
+      [value]="q() ?? ''"
+      (input)="onSearch($any($event.target).value)"
+    />
+  </div>
+
+  <div class="overflow-x-auto">
+    @if (isLoading() && !rows().length) {
+      <div class="space-y-2 p-2">
+        @for (i of [1, 2, 3, 4, 5]; track i) {
+          <div class="skeleton h-14"></div>
+        }
+      </div>
+    } @else if (errorMessage()) {
+      <app-empty-state icon="alert" [title]="errorMessage()">
+        <button type="button" class="btn btn-secondary btn-sm" (click)="reload()">
+          Reintentar
+        </button>
+      </app-empty-state>
+    } @else if (!rows().length) {
+      @if (query()) {
+        <app-empty-state icon="search" [title]="'Sin resultados para “' + query() + '”'">
+          <button type="button" class="btn btn-ghost" (click)="clearSearch()">
+            Limpiar búsqueda
+          </button>
+        </app-empty-state>
+      } @else {
+        <app-empty-state
+          icon="users"
+          title="Aún no tienes socios"
+          message="Registra al primero para empezar a vender membresías."
+        >
+          <button type="button" class="btn btn-primary" (click)="openCreate()">Nuevo socio</button>
+        </app-empty-state>
+      }
+    } @else {
+      <table class="data-table">
+        <caption class="sr-only">
+          Lista de socios
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Socio</th>
+            <th scope="col" class="hidden md:table-cell">Teléfono</th>
+            <th scope="col">Membresía</th>
+            <th scope="col" class="hidden sm:table-cell">Estado</th>
+            <th scope="col" class="text-right"><span class="sr-only">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of rows(); track m.id) {
+            <tr>
+              <td>
+                <div class="flex min-w-0 items-center gap-3">
+                  <span class="avatar" aria-hidden="true">{{ initials(m.fullName) }}</span>
+                  <div class="min-w-0">
+                    <a
+                      [routerLink]="['/socios', m.id]"
+                      [state]="{ listQuery: { q: q() ?? null, page: page() || null } }"
+                      class="block max-w-[14rem] truncate font-bold text-gray-900 hover:text-primary-ink"
+                      [title]="m.fullName"
+                      >{{ m.fullName }}</a
+                    >
+                    <p class="text-xs text-gray-500">DNI {{ m.dni }}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="hidden md:table-cell">{{ m.phone || '—' }}</td>
+              <td>
+                @if (m.currentMembership; as ms) {
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="font-semibold text-gray-900">{{ ms.planName }}</span>
+                    <app-status-chip [chip]="statusChip[ms.status]" />
+                    @if (expiringChip(ms.status, ms.daysLeft); as chip) {
+                      <app-status-chip [chip]="chip" />
+                    }
+                  </div>
+                  <p class="text-xs text-gray-500">Vence {{ ms.endDate | localDate: true }}</p>
+                } @else {
+                  <span class="text-gray-500">— Sin membresía</span>
+                }
+              </td>
+              <td class="hidden sm:table-cell">
+                <app-status-chip [chip]="activeChip(m.active)" />
+              </td>
+              <td class="text-right">
+                <a
+                  class="btn-icon"
+                  [routerLink]="['/socios', m.id]"
+                  [state]="{ listQuery: { q: q() ?? null, page: page() || null } }"
+                  [attr.aria-label]="'Ver detalle de ' + m.fullName"
+                >
+                  <app-ui-icon name="chevronRight" class="h-4 w-4" />
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  @if (result(); as r) {
+    <app-pagination
+      class="mt-3 block px-2"
+      [page]="r.page"
+      [totalPages]="r.totalPages"
+      [totalItems]="r.totalItems"
+      (pageChange)="setPage($event)"
+    />
+  }
+</section>

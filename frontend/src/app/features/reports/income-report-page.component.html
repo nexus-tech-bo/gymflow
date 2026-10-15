@@ -1,0 +1,106 @@
+<app-page-header title="Ingresos" subtitle="Pagos registrados por día y método" />
+
+<form
+  class="glass-panel mb-6 flex flex-wrap items-end gap-4 rounded-3xl p-4"
+  (submit)="$event.preventDefault(); search()"
+>
+  <div class="w-full sm:w-auto">
+    <label class="field-label" for="range">Rango</label>
+    <app-date-picker
+      mode="range"
+      inputId="range"
+      ariaLabel="Rango"
+      describedBy="range-error"
+      [invalid]="!!draftError()"
+      [max]="today"
+      [from]="draftFrom()"
+      [to]="draftTo()"
+      (rangeChange)="draftFrom.set($event.from); draftTo.set($event.to)"
+    />
+  </div>
+  <button type="submit" class="btn btn-primary" [disabled]="!!draftError()">Consultar</button>
+  @if (draftError()) {
+    <p id="range-error" class="field-error w-full" role="alert">{{ draftError() }}</p>
+  }
+</form>
+
+@if (isLoading() && !data()) {
+  <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
+    @for (i of [1, 2, 3, 4, 5]; track i) {
+      <div class="skeleton h-24"></div>
+    }
+  </div>
+  <div class="skeleton h-64"></div>
+} @else if (errorMessage()) {
+  <app-empty-state icon="alert" [title]="errorMessage()">
+    <button type="button" class="btn btn-secondary btn-sm" (click)="reload()">Reintentar</button>
+  </app-empty-state>
+} @else if (data(); as r) {
+  <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
+    <div class="stat-tile col-span-2">
+      <p class="stat-label">Total</p>
+      <p class="stat-value text-3xl text-primary-ink">{{ r.totals.total | money }}</p>
+    </div>
+    <div class="stat-tile">
+      <p class="stat-label">Efectivo</p>
+      <p class="stat-value">{{ r.totals.cash | money }}</p>
+    </div>
+    <div class="stat-tile">
+      <p class="stat-label">QR</p>
+      <p class="stat-value">{{ r.totals.qr | money }}</p>
+    </div>
+    <div class="stat-tile">
+      <p class="stat-label">N° de pagos</p>
+      <p class="stat-value">{{ r.totals.count }}</p>
+    </div>
+  </div>
+
+  <section class="glass-panel rounded-3xl p-4">
+    @if (!days().length) {
+      <app-empty-state icon="chart" title="No hay ingresos en este rango." />
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="data-table">
+          <caption class="sr-only">
+            Ingresos por día del
+            {{
+              r.from | localDate
+            }}
+            al
+            {{
+              r.to | localDate
+            }}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Fecha</th>
+              <th scope="col" class="text-right">Pagos</th>
+              <th scope="col" class="text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of days(); track d.date) {
+              <tr>
+                <td class="tabular-nums">
+                  {{ d.date | localDate }}
+                  <span class="text-xs text-gray-500 capitalize">{{ weekday(d.date) }}</span>
+                </td>
+                <td class="text-right tabular-nums">{{ d.count }}</td>
+                <td class="text-right font-semibold tabular-nums">{{ d.total | money }}</td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="px-4 py-3 font-extrabold text-gray-900">Total</td>
+              <td class="px-4 py-3 text-right font-bold tabular-nums">{{ r.totals.count }}</td>
+              <td class="px-4 py-3 text-right font-extrabold text-gray-900 tabular-nums">
+                {{ r.totals.total | money }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    }
+  </section>
+}
