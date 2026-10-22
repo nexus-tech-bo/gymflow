@@ -1,29 +1,57 @@
-# secrets
 .env
 .env.*
 !.env.example
 
-# OS / IDE
 .DS_Store
 Thumbs.db
+
 .idea/
 *.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+.factorypath
+.apt_generated
+.springBeans
+.sts4-cache
+*.launch
+*.sublime-workspace
+.history/
 .vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
 !.vscode/extensions.json
+!.vscode/mcp.json
 
-# dependencies & build output
-node_modules/
-frontend/dist/
-frontend/.angular/
-frontend/test-results/
-frontend/playwright-report/
+*.log
+
 backend/.gradle/
 backend/build/
 backend/bin/
-*.log
+backend/out/
+backend/HELP.md
 
-# Claude Code personal overrides
-.claude/settings.local.json
+node_modules/
+frontend/dist/
+frontend/tmp/
+frontend/out-tsc/
+frontend/.angular/
+frontend/coverage/
+frontend/test-results/
+frontend/playwright-report/
+.sass-cache/
+__screenshots__/
+
+/qa-reports/
+
+/playwright-mcp/
+.playwright-mcp/
+
 branch_structure.json
 temp_auto_push.bat
 temp_interactive_push.bat
+
+.claude/settings.local.json
